@@ -21,6 +21,7 @@ export const fetchTrendingTV = (page = 1) => api.get(`/tv/trending/?page=${page}
 export const fetchTopRatedTV = (page = 1) => api.get(`/tv/top-rated/?page=${page}`);
 export const fetchTVDetail = (id) => api.get(`/tv/${id}/`);
 export const fetchTVVideos = (id) => api.get(`/tv/${id}/videos/`);
+export const fetchTVEpisodes = (id, season = 1) => api.get(`/tv/${id}/episodes/?season=${season}`);
 export const fetchSimilarTV = (id) => api.get(`/tv/${id}/similar/`);
 
 export const fetchMovieGenres = () => api.get('/genres/movies/');

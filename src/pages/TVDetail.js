@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchTVDetail, fetchTVVideos, fetchTVStream, getImageUrl, getBackdropUrl } from '../utils/api';
+import { fetchTVDetail, fetchTVVideos, fetchTVStream, fetchTVEpisodes, getImageUrl, getBackdropUrl } from '../utils/api';
 import TrailerModal from '../components/TrailerModal';
 import StreamModal from '../components/StreamModal';
 import MediaCard from '../components/MediaCard';
@@ -13,6 +13,8 @@ export default function TVDetail() {
   const [trailerKey, setTrailerKey] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [streamUrl, setStreamUrl] = useState(null);
+  const [episodes, setEpisodes] = useState(null);
+  const [selectedSeason, setSelectedSeason] = useState(1);
 
   const handleWatchNow = async () => {
     try {
@@ -37,6 +39,20 @@ export default function TVDetail() {
     };
     load();
   }, [id]);
+
+  useEffect(() => {
+    if (show && activeTab === 'episodes') {
+      const loadEpisodes = async () => {
+        try {
+          const res = await fetchTVEpisodes(id, selectedSeason);
+          setEpisodes(res.data);
+        } catch (err) {
+          console.error('Failed to load episodes:', err);
+        }
+      };
+      loadEpisodes();
+    }
+  }, [id, selectedSeason, activeTab, show]);
 
   if (loading) return <div style={{ paddingTop: 70 }}><div className="loading-center"><div className="spinner" /></div></div>;
   if (!show) return <div style={{ paddingTop: 120, textAlign: 'center' }}>Show not found.</div>;
@@ -111,7 +127,7 @@ export default function TVDetail() {
         </div>
 
         <div style={{ marginTop: 40, borderBottom: '1px solid var(--border)', marginBottom: 32, display: 'flex', gap: 4, overflowX: 'auto' }}>
-          {['overview', 'cast', 'videos', 'similar', 'recommended'].map(t => (
+          {['overview', 'episodes', 'cast', 'videos', 'similar', 'recommended'].map(t => (
             <button key={t} onClick={() => setActiveTab(t)} style={{
               padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer',
               color: activeTab === t ? 'var(--accent)' : 'var(--text-muted)',
@@ -134,6 +150,94 @@ export default function TVDetail() {
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+{activeTab === 'episodes' && (
+          <div>
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ fontWeight: 700, marginBottom: 12, fontSize: 18 }}>Episodes</h3>
+              {show.number_of_seasons && (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+                  {Array.from({ length: show.number_of_seasons }, (_, i) => i + 1).map(season => (
+                    <button
+                      key={season}
+                      onClick={() => setSelectedSeason(season)}
+                      style={{
+                        padding: '8px 16px',
+                        background: selectedSeason === season ? 'var(--accent)' : 'var(--bg-elevated)',
+                        color: selectedSeason === season ? '#fff' : 'var(--text)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: 14,
+                      }}
+                    >
+                      Season {season}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {episodes?.episodes ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {episodes.episodes.map(episode => (
+                  <div
+                    key={episode.id}
+                    style={{
+                      display: 'flex',
+                      gap: 16,
+                      padding: 16,
+                      background: 'var(--bg-card)',
+                      borderRadius: 10,
+                      border: '1px solid var(--border)',
+                      cursor: 'pointer',
+                    }}
+                    onClick={async () => {
+                      try {
+                        const res = await fetchTVStream(id, 'vidsrc', selectedSeason, episode.episode_number);
+                        setStreamUrl(res.data.embed_url);
+                      } catch (err) {
+                        console.error('Failed to get stream URL:', err);
+                        alert('Failed to load stream. Please try another provider.');
+                      }
+                    }}
+                  >
+                    {episode.still_path ? (
+                      <img
+                        src={getImageUrl(episode.still_path, 'w300')}
+                        alt={episode.name}
+                        style={{ width: 180, height: 100, objectFit: 'cover', borderRadius: 8 }}
+                      />
+                    ) : (
+                      <div style={{ width: 180, height: 100, background: 'var(--surface)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>📺</div>
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--accent)' }}>
+                          S{selectedSeason} E{episode.episode_number}
+                        </span>
+                        {episode.vote_average && (
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>⭐ {episode.vote_average.toFixed(1)}</span>
+                        )}
+                      </div>
+                      <h4 style={{ fontWeight: 600, fontSize: 15, marginBottom: 6 }}>{episode.name}</h4>
+                      <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {episode.overview || 'No overview available.'}
+                      </p>
+                      {episode.air_date && (
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
+                          {new Date(episode.air_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-muted)' }}>Loading episodes...</p>
             )}
           </div>
         )}
