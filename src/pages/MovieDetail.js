@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { fetchMovieDetail, fetchMovieVideos, fetchMovieStream, getImageUrl, getBackdropUrl } from '../utils/api';
 import TrailerModal from '../components/TrailerModal';
 import StreamModal from '../components/StreamModal';
@@ -13,11 +13,10 @@ export default function MovieDetail() {
   const [trailerKey, setTrailerKey] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [streamUrl, setStreamUrl] = useState(null);
-  const [streamProvider, setStreamProvider] = useState('vidsrc');
 
   const handleWatchNow = async () => {
     try {
-      const res = await fetchMovieStream(id, streamProvider);
+      const res = await fetchMovieStream(id, 'vidsrc');
       setStreamUrl(res.data.embed_url);
     } catch (err) {
       console.error('Failed to get stream URL:', err);

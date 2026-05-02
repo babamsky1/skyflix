@@ -5,7 +5,7 @@ import MediaCard from '../components/MediaCard';
 import Pagination from '../components/Pagination';
 
 export default function SearchResults() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);

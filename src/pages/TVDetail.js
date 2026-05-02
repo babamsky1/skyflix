@@ -13,13 +13,10 @@ export default function TVDetail() {
   const [trailerKey, setTrailerKey] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [streamUrl, setStreamUrl] = useState(null);
-  const [streamProvider, setStreamProvider] = useState('vidsrc');
-  const [selectedSeason, setSelectedSeason] = useState(1);
-  const [selectedEpisode, setSelectedEpisode] = useState(1);
 
   const handleWatchNow = async () => {
     try {
-      const res = await fetchTVStream(id, streamProvider, selectedSeason, selectedEpisode);
+      const res = await fetchTVStream(id, 'vidsrc', 1, 1);
       setStreamUrl(res.data.embed_url);
     } catch (err) {
       console.error('Failed to get stream URL:', err);
