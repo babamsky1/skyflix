@@ -13,10 +13,22 @@ export default function MovieDetail() {
   const [trailerKey, setTrailerKey] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [streamUrl, setStreamUrl] = useState(null);
+  const [currentProvider, setCurrentProvider] = useState('vidsrc');
 
   const handleWatchNow = async () => {
     try {
-      const res = await fetchMovieStream(id, 'vidsrc');
+      const res = await fetchMovieStream(id, currentProvider);
+      setStreamUrl(res.data.embed_url);
+    } catch (err) {
+      console.error('Failed to get stream URL:', err);
+      alert('Failed to load stream. Please try another provider.');
+    }
+  };
+
+  const handleProviderChange = async (newProvider) => {
+    setCurrentProvider(newProvider);
+    try {
+      const res = await fetchMovieStream(id, newProvider);
       setStreamUrl(res.data.embed_url);
     } catch (err) {
       console.error('Failed to get stream URL:', err);
@@ -209,7 +221,7 @@ export default function MovieDetail() {
       </div>
 
       {trailerKey && <TrailerModal videoKey={trailerKey} title={movie.title} onClose={() => setTrailerKey(null)} />}
-      {streamUrl && <StreamModal embedUrl={streamUrl} title={movie.title} onClose={() => setStreamUrl(null)} />}
+      {streamUrl && <StreamModal embedUrl={streamUrl} title={movie.title} onClose={() => setStreamUrl(null)} onProviderChange={handleProviderChange} currentProvider={currentProvider} mediaType="movie" mediaId={id} />}
       <div style={{ height: 80 }} />
     </div>
   );

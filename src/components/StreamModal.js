@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from 'react';
 
-export default function StreamModal({ embedUrl, title, onClose }) {
+const STREAMING_PROVIDERS = [
+  { id: 'vidsrc', name: 'VidSrc', url: 'https://vidsrc.xyz' },
+  { id: 'vidsrc_to', name: 'VidSrc.to', url: 'https://vidsrc.to' },
+  { id: 'embed2', name: '2Embed', url: 'https://www.2embed.cc' },
+  { id: 'vidsrc_me', name: 'VidSrc.me', url: 'https://vidsrc.me' },
+  { id: 'movies123', name: 'Movies123', url: 'https://movies123.to' },
+  { id: 'putlocker', name: 'Putlocker', url: 'https://putlocker.to' },
+  { id: 'solarmovie', name: 'SolarMovie', url: 'https://solarmovie.to' },
+  { id: 'fmovies', name: 'FMovies', url: 'https://fmovies.to' },
+];
+
+export default function StreamModal({ embedUrl, title, onClose, onProviderChange, currentProvider = 'vidsrc', mediaType, mediaId }) {
   const [loading, setLoading] = useState(true);
+  const [selectedProvider, setSelectedProvider] = useState(currentProvider);
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -45,19 +57,46 @@ export default function StreamModal({ embedUrl, title, onClose }) {
           borderBottom: '1px solid var(--border)',
         }}>
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{title}</h3>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: 24,
-              cursor: 'pointer',
-              color: 'var(--text-muted)',
-              padding: 4,
-            }}
-          >
-            ×
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <select
+              value={selectedProvider}
+              onChange={(e) => {
+                const newProvider = e.target.value;
+                setSelectedProvider(newProvider);
+                if (onProviderChange) {
+                  onProviderChange(newProvider);
+                }
+              }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid var(--border)',
+                background: 'var(--bg)',
+                color: 'var(--text)',
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              {STREAMING_PROVIDERS.map(provider => (
+                <option key={provider.id} value={provider.id}>
+                  {provider.name}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: 24,
+                cursor: 'pointer',
+                color: 'var(--text-muted)',
+                padding: 4,
+              }}
+            >
+              ×
+            </button>
+          </div>
         </div>
         
         <div style={{ position: 'relative', paddingTop: '56.25%', background: '#000' }}>

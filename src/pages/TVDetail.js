@@ -15,10 +15,22 @@ export default function TVDetail() {
   const [streamUrl, setStreamUrl] = useState(null);
   const [episodes, setEpisodes] = useState(null);
   const [selectedSeason, setSelectedSeason] = useState(1);
+  const [currentProvider, setCurrentProvider] = useState('vidsrc');
 
   const handleWatchNow = async () => {
     try {
-      const res = await fetchTVStream(id, 'vidsrc', 1, 1);
+      const res = await fetchTVStream(id, currentProvider, 1, 1);
+      setStreamUrl(res.data.embed_url);
+    } catch (err) {
+      console.error('Failed to get stream URL:', err);
+      alert('Failed to load stream. Please try another provider.');
+    }
+  };
+
+  const handleProviderChange = async (newProvider) => {
+    setCurrentProvider(newProvider);
+    try {
+      const res = await fetchTVStream(id, newProvider, 1, 1);
       setStreamUrl(res.data.embed_url);
     } catch (err) {
       console.error('Failed to get stream URL:', err);
@@ -295,7 +307,7 @@ export default function TVDetail() {
       </div>
 
       {trailerKey && <TrailerModal videoKey={trailerKey} title={show.name} onClose={() => setTrailerKey(null)} />}
-      {streamUrl && <StreamModal embedUrl={streamUrl} title={show.name} onClose={() => setStreamUrl(null)} />}
+      {streamUrl && <StreamModal embedUrl={streamUrl} title={show.name} onClose={() => setStreamUrl(null)} onProviderChange={handleProviderChange} currentProvider={currentProvider} mediaType="tv" mediaId={id} />}
       <div style={{ height: 80 }} />
     </div>
   );
