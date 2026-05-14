@@ -14,128 +14,73 @@ const STREAMING_PROVIDERS = [
 export default function StreamModal({ embedUrl, title, onClose, onProviderChange, currentProvider = 'vidsrc', mediaType, mediaId }) {
   const [loading, setLoading] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState(currentProvider);
+  const [playerReady, setPlayerReady] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+      document.body.style.overflow = '';
+    };
   }, [onClose]);
 
   return (
-    <div 
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.9)',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%',
-          maxWidth: 1200,
-          background: '#000',
-          borderRadius: 12,
-          overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-        }}
-      >
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '16px 20px',
-          background: 'var(--bg-elevated)',
-          borderBottom: '1px solid var(--border)',
-        }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{title}</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div onClick={onClose} className="stream-overlay">
+      <div onClick={e => e.stopPropagation()} className="stream-container">
+        {/* Top bar */}
+        <div className="stream-topbar">
+          <div className="stream-topbar-left">
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>Now Playing</span>
+            <div style={{ fontWeight: 600, fontSize: 15 }}>{title}</div>
+          </div>
+          <div className="stream-topbar-right">
             <select
               value={selectedProvider}
               onChange={(e) => {
                 const newProvider = e.target.value;
                 setSelectedProvider(newProvider);
-                if (onProviderChange) {
-                  onProviderChange(newProvider);
-                }
+                setLoading(true);
+                setPlayerReady(false);
+                if (onProviderChange) onProviderChange(newProvider);
               }}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 6,
-                border: '1px solid var(--border)',
-                background: 'var(--bg)',
-                color: 'var(--text)',
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
+              className="stream-provider-select"
             >
               {STREAMING_PROVIDERS.map(provider => (
-                <option key={provider.id} value={provider.id}>
-                  {provider.name}
-                </option>
+                <option key={provider.id} value={provider.id}>{provider.name}</option>
               ))}
             </select>
-            <button
-              onClick={onClose}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: 24,
-                cursor: 'pointer',
-                color: 'var(--text-muted)',
-                padding: 4,
-              }}
-            >
-              ×
+            <button onClick={onClose} className="stream-close-btn">
+              <span>✕</span>
             </button>
           </div>
         </div>
-        
-        <div style={{ position: 'relative', paddingTop: '56.25%', background: '#000' }}>
+
+        {/* Player */}
+        <div className="stream-player-wrap">
           {loading && (
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-muted)',
-            }}>
+            <div className="stream-loading">
               <div className="spinner" />
+              <p style={{ marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>Loading stream...</p>
             </div>
           )}
           <iframe
             src={embedUrl}
             title={title}
             allowFullScreen
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              border: 'none',
-            }}
-            onLoad={() => setLoading(false)}
+            className={`stream-iframe ${playerReady ? 'stream-iframe-ready' : ''}`}
+            onLoad={() => { setLoading(false); setPlayerReady(true); }}
           />
         </div>
 
-        <div style={{
-          padding: '12px 20px',
-          background: 'var(--bg-elevated)',
-          borderTop: '1px solid var(--border)',
-          fontSize: 13,
-          color: 'var(--text-muted)',
-          textAlign: 'center',
-        }}>
-          Streaming provided by third-party embed providers. Press ESC to close.
+        {/* Bottom info */}
+        <div className="stream-bottombar">
+          <span>Press <kbd>ESC</kbd> to close</span>
+          <span style={{ color: 'var(--text-muted)' }}>•</span>
+          <span>Change provider if stream doesn't load</span>
         </div>
       </div>
     </div>

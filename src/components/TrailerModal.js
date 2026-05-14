@@ -12,43 +12,31 @@ export default function TrailerModal({ videoKey, title, onClose }) {
   }, [onClose]);
 
   return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 2000,
-      background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(10px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '20px',
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        width: '100%', maxWidth: 960,
-        background: 'var(--bg-card)', borderRadius: 16,
-        border: '1px solid var(--border)',
-        overflow: 'hidden', boxShadow: '0 40px 80px rgba(0,0,0,0.8)',
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          borderBottom: '1px solid var(--border)',
-        }}>
-          <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>Official Trailer</div>
-            <div style={{ fontWeight: 600, fontSize: 16 }}>{title}</div>
+    <div onClick={onClose} className="stream-overlay" style={{ zIndex: 2000 }}>
+      <div onClick={e => e.stopPropagation()} className="stream-container" style={{ maxWidth: 960 }}>
+        <div className="stream-topbar">
+          <div className="stream-topbar-left">
+            <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>Official Trailer</span>
+            <div style={{ fontWeight: 600, fontSize: 15 }}>{title}</div>
           </div>
-          <button onClick={onClose} style={{
-            width: 36, height: 36, borderRadius: 10, border: '1px solid var(--border)',
-            background: 'var(--bg-elevated)', color: 'var(--text)', fontSize: 18,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-          }}>✕</button>
+          <div className="stream-topbar-right">
+            <button onClick={onClose} className="stream-close-btn">
+              <span>✕</span>
+            </button>
+          </div>
         </div>
-        {/* Video */}
-        <div style={{ aspectRatio: '16/9', background: '#000' }}>
+        <div className="stream-player-wrap">
           <iframe
             src={`https://www.youtube.com/embed/${videoKey}?autoplay=1&rel=0`}
             title={`${title} Trailer`}
-            frameBorder="0"
             allow="autoplay; encrypted-media; fullscreen"
             allowFullScreen
-            style={{ width: '100%', height: '100%' }}
+            className="stream-iframe stream-iframe-ready"
+            style={{ aspectRatio: '16/9' }}
           />
+        </div>
+        <div className="stream-bottombar">
+          <span>Press <kbd>ESC</kbd> to close</span>
         </div>
       </div>
     </div>
