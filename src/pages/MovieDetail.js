@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchMovieDetail, fetchMovieVideos, fetchMovieStream, getImageUrl, getBackdropUrl } from '../utils/api';
+import { warmupServer, fetchMovieDetail, fetchMovieVideos, fetchMovieStream, getImageUrl, getBackdropUrl } from '../utils/api';
 import TrailerModal from '../components/TrailerModal';
 import StreamModal from '../components/StreamModal';
 import MediaCard from '../components/MediaCard';
@@ -44,6 +44,10 @@ export default function MovieDetail() {
     const load = async () => {
       setLoading(true);
       try {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try { await warmupServer(); break; }
+          catch { await new Promise(r => setTimeout(r, 2000)); }
+        }
         const [mRes, vRes] = await Promise.all([fetchMovieDetail(id), fetchMovieVideos(id)]);
         setMovie(mRes.data);
         setVideos(vRes.data.results || []);

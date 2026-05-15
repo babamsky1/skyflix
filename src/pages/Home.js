@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import HeroSlider from '../components/HeroSlider';
 import MediaRow from '../components/MediaRow';
-import { fetchTrendingMovies, fetchPopularMovies, fetchTopRatedMovies, fetchTrendingTV, fetchPopularTV } from '../utils/api';
+import { warmupServer, fetchTrendingMovies, fetchPopularMovies, fetchTopRatedMovies, fetchTrendingTV, fetchPopularTV } from '../utils/api';
 
 const wrap = (p) =>
   p.then(r => ({ data: r.data.results || [] })).catch(err => {
     console.error('Section failed to load:', err);
     return { data: [] };
   });
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 export default function Home() {
   const [trending, setTrending] = useState([]);
@@ -17,10 +19,31 @@ export default function Home() {
   const [popularTV, setPopularTV] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [waking, setWaking] = useState(true);
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    return () => { mounted.current = false; };
+  }, []);
 
   useEffect(() => {
     setLoadError(false);
+    setWaking(true);
     const load = async () => {
+      // Phase 1: wake up the server with a single call + longer timeout
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          await warmupServer();
+          break;
+        } catch {
+          if (!mounted.current) return;
+          await sleep(2000);
+        }
+      }
+      if (!mounted.current) return;
+      setWaking(false);
+
+      // Phase 2: load everything in parallel (server is warm now)
       try {
         const [t, pm, tr, ttv, ptv] = await Promise.allSettled([
           wrap(fetchTrendingMovies()),
@@ -29,6 +52,7 @@ export default function Home() {
           wrap(fetchTrendingTV()),
           wrap(fetchPopularTV()),
         ]);
+        if (!mounted.current) return;
         setTrending(t.value?.data || []);
         setPopularMovies(pm.value?.data || []);
         setTopRated(tr.value?.data || []);
@@ -50,7 +74,9 @@ export default function Home() {
       <div style={{ height: 'min(620px, 85vh)', background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div>
           <div className="spinner" />
-          <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: 16 }}>Loading amazing content…</p>
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: 16 }}>
+            {waking ? 'Waking up server…' : 'Loading amazing content…'}
+          </p>
         </div>
       </div>
     </div>

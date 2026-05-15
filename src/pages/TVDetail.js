@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchTVDetail, fetchTVVideos, fetchTVStream, fetchTVEpisodes, getImageUrl, getBackdropUrl } from '../utils/api';
+import { warmupServer, fetchTVDetail, fetchTVVideos, fetchTVStream, fetchTVEpisodes, getImageUrl, getBackdropUrl } from '../utils/api';
 import TrailerModal from '../components/TrailerModal';
 import StreamModal from '../components/StreamModal';
 import MediaCard from '../components/MediaCard';
@@ -46,6 +46,10 @@ export default function TVDetail() {
     const load = async () => {
       setLoading(true);
       try {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try { await warmupServer(); break; }
+          catch { await new Promise(r => setTimeout(r, 2000)); }
+        }
         const [sRes, vRes] = await Promise.all([fetchTVDetail(id), fetchTVVideos(id)]);
         setShow(sRes.data);
         setVideos(vRes.data.results || []);

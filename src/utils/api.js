@@ -4,6 +4,9 @@ const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/ap
 export const IMG_BASE = process.env.REACT_APP_TMDB_IMAGE_BASE || 'https://image.tmdb.org/t/p';
 
 const api = axios.create({ baseURL: API_BASE, timeout: 30000 });
+const apiWarmup = axios.create({ baseURL: API_BASE, timeout: 60000 });
+
+export const warmupServer = () => apiWarmup.get('/movies/trending/?page=1');
 
 export const getImageUrl = (path, size = 'w500') => path ? `${IMG_BASE}/${size}${path}` : null;
 export const getBackdropUrl = (path) => path ? `${IMG_BASE}/original${path}` : null;
